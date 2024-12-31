@@ -1,42 +1,68 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Product = require('./model/product.model.js');
+const Book = require('./model/book.model.js');
 
 const app = express()
 
 app.use(express.json());
 
 
-app.get('/', (req, res) => {
-    res.send("Hello from Node API updated"); //response is coming from node api
-});
-
-// app.post('/api/products', (req, res) =>{
-//     res.send("Data Recieved");
-// });
-
-app.get('/api/products', async (req, res) => {
-    try{
-        const products = await Product.find({});
-    }catch (error){
-        res.status(500).json({message: error.message});
+// GET all book
+app.get('/api/books', async (req, res) => {
+    try {
+        const books = await Book.find({});
+        res.status(200).json(books);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
-app.post('/api/products', async (req, res)=>{
-    try{
-        const product = await Product.create(req.body);
-        res.status(200).json(product);
-    }catch (error){
-        res.status(500).json({message: error.message});
+// POST new product
+app.post('/api/books', async (req, res) => {
+    try {
+        const book = await Book.create(req.body);
+        res.status(201).json(book);
+    } catch (error) {
+        res.status(400).json({ message: "Invalid request body" });
+    }
+});
+// PUT update existing book
+app.put('/api/books/:id', async (req, res) => {
+    try {
+        let book = await Book.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        );
+        if (!book) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+        res.status(200).json(book);
+    } catch (error) {
+        res.status(400).json({ message: "Invalid request body" });
     }
 });
 
-app.get('/api/products/:id', async (req, res) => {
-    try{
+// GET single book by ID
+app.get('/api/books/:id', async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.id);
+        if (!book) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+        res.status(200).json(book);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
-    }catch (error){
-        res.status(500).json({message: error.message});
+// DELETE book
+app.delete('/api/books/:id', async (req, res) => {
+    try {
+        await Book.findByIdAndRemove(req.params.id);
+        res.status(200).json({ message: "Book deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
